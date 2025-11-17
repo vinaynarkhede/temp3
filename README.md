@@ -2,6 +2,13 @@
 
 A lightweight ngrok-like tunneling application written in Python. PyTunnel allows you to expose your local development servers to the internet through secure tunnels.
 
+## Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get running in 2 minutes ⚡
+- **[SETUP.md](SETUP.md)** - Complete setup and installation guide 📖
+- **[USAGE.md](USAGE.md)** - Detailed usage examples and scenarios 💡
+- **[README.md](README.md)** - This file: project overview and architecture 📚
+
 ## Features
 
 - **Reverse Proxy Tunneling**: Expose local servers to the internet
@@ -28,18 +35,32 @@ PyTunnel consists of two main components:
 
 ## Installation
 
-### From Source
+**📖 For detailed step-by-step setup instructions, see [SETUP.md](SETUP.md)**
+
+### Quick Install
 
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd pytunnel
 
+# Create and activate virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
+```
 
-# Install the package
+### Install as Package (Optional)
+
+```bash
+# Install the package with CLI commands
 pip install -e .
+
+# Now you can use:
+# - pytunnel-server
+# - pytunnel-client
 ```
 
 ## Usage
