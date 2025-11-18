@@ -7,9 +7,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="pytunnel",
-    version="0.2.0",
+    version="0.3.0",
     author="PyTunnel",
-    description="A ngrok-like tunneling application in Python with advanced features",
+    description="A ngrok-like tunneling application in Python with enterprise features",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
@@ -30,6 +30,11 @@ setup(
         "python-dotenv>=1.0.0",
         "colorama>=0.4.6",
         "cryptography>=41.0.7",
+        "rich>=13.7.0",
+        "click>=8.1.7",
+        "psutil>=5.9.6",
+        "questionary>=2.0.1",
+        "geoip2>=4.7.0",
     ],
     entry_points={
         "console_scripts": [

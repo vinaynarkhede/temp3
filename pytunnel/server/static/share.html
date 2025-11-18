@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Tunnel - PyTunnel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .status-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            color: #666;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .expiry-warning {
+            color: #f39c12;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .password-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: #999;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .countdown {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .expired {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .expired h2 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .expired p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Shared Tunnel</h1>
+            <p>Access a temporary tunnel demo</p>
+        </div>
+
+        <div class="content" id="content">
+            <!-- Content will be loaded here -->
+        </div>
+
+        <div class="footer">
+            Powered by <a href="https://github.com/pytunnel" target="_blank">PyTunnel</a>
+        </div>
+    </div>
+
+    <script>
+        // Get share ID from URL
+        const shareId = window.location.pathname.split('/').pop();
+        let requiresPassword = false;
+        let expiresAt = 0;
+
+        async function loadShareInfo() {
+            try {
+                const response = await fetch(`/api/share/${shareId}/info`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showExpired(data.error || 'Share not found');
+                    return;
+                }
+
+                requiresPassword = data.requires_password;
+                expiresAt = data.expires_at;
+
+                if (data.is_expired) {
+                    showExpired('This share has expired');
+                    return;
+                }
+
+                if (data.is_revoked) {
+                    showExpired('This share has been revoked');
+                    return;
+                }
+
+                showAccessForm(data);
+                startCountdown(data.time_remaining);
+
+            } catch (error) {
+                showExpired('Error loading share information');
+            }
+        }
+
+        function showAccessForm(data) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="status-info">
+                    <div class="status-row">
+                        <span class="status-label">Accesses</span>
+                        <span class="status-value">${data.access_count}${data.max_access_count ? ' / ' + data.max_access_count : ''}</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Expires in</span>
+                        <span class="status-value countdown" id="countdown">Loading...</span>
+                    </div>
+                </div>
+
+                ${data.requires_password ? `
+                    <form class="password-form" onsubmit="accessShare(event)">
+                        <div class="error-message" id="error"></div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">🔐 Password Required</label>
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Enter password"
+                                required
+                                autofocus
+                            >
+                        </div>
+                        <button type="submit" class="btn" id="submit-btn">
+                            Continue to Demo
+                        </button>
+                    </form>
+                ` : `
+                    <button class="btn" onclick="accessShare(event)">
+                        Continue to Demo
+                    </button>
+                `}
+            `;
+        }
+
+        function showExpired(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="expired">
+                    <h2>⏰ ${message}</h2>
+                    <p>This shared tunnel is no longer available.</p>
+                </div>
+            `;
+        }
+
+        async function accessShare(event) {
+            event.preventDefault();
+
+            const password = requiresPassword ?
+                document.getElementById('password').value : null;
+
+            const errorDiv = document.getElementById('error');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (submitBtn) submitBtn.disabled = true;
+            if (errorDiv) errorDiv.classList.remove('show');
+
+            try {
+                const response = await fetch(`/api/share/${shareId}/access`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Redirect to actual tunnel
+                    window.location.href = data.tunnel_url;
+                } else {
+                    if (errorDiv) {
+                        errorDiv.textContent = data.error || 'Access denied';
+                        errorDiv.classList.add('show');
+                    }
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+
+            } catch (error) {
+                if (errorDiv) {
+                    errorDiv.textContent = 'Error accessing share';
+                    errorDiv.classList.add('show');
+                }
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+        function startCountdown(seconds) {
+            const countdownEl = document.getElementById('countdown');
+            if (!countdownEl) return;
+
+            function updateCountdown() {
+                if (seconds <= 0) {
+                    location.reload();
+                    return;
+                }
+
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+
+                let display = '';
+                if (hours > 0) {
+                    display = `${hours}h ${minutes}m`;
+                } else if (minutes > 0) {
+                    display = `${minutes}m ${secs}s`;
+                } else {
+                    display = `${secs}s`;
+                }
+
+                countdownEl.textContent = display;
+
+                if (seconds < 300) { // Less than 5 minutes
+                    countdownEl.style.color = '#e74c3c';
+                }
+
+                seconds--;
+                setTimeout(updateCountdown, 1000);
+            }
+
+            updateCountdown();
+        }
+
+        // Load share info on page load
+        loadShareInfo();
+    </script>
+</body>
+</html>
