@@ -7,9 +7,12 @@ A lightweight ngrok-like tunneling application written in Python. PyTunnel allow
 - **[QUICKSTART.md](QUICKSTART.md)** - Get running in 2 minutes ⚡
 - **[SETUP.md](SETUP.md)** - Complete setup and installation guide 📖
 - **[USAGE.md](USAGE.md)** - Detailed usage examples and scenarios 💡
+- **[FEATURES.md](FEATURES.md)** - Advanced features documentation 🚀
 - **[README.md](README.md)** - This file: project overview and architecture 📚
 
 ## Features
+
+### Core Features
 
 - **Reverse Proxy Tunneling**: Expose local servers to the internet
 - **WebSocket-based Communication**: Efficient bidirectional communication
@@ -17,6 +20,19 @@ A lightweight ngrok-like tunneling application written in Python. PyTunnel allow
 - **Auto-Reconnect**: Client automatically reconnects if connection is lost
 - **Colored Logging**: Beautiful console output with color-coded logs
 - **Simple CLI**: Easy-to-use command-line interface
+
+### Advanced Features (NEW! ✨)
+
+- **🔒 HTTPS/TLS Support**: Secure tunnels with SSL/TLS encryption
+- **🏷️ Custom Subdomains**: Use memorable subdomains instead of random IDs
+- **🔐 Authentication & Authorization**: User accounts, API keys, and access control
+- **📊 Web Dashboard**: Beautiful real-time monitoring interface
+- **📝 Traffic Inspection**: Detailed logging and traffic analysis
+- **🌐 TCP Tunnel Support**: Tunnel raw TCP connections (databases, SSH, etc.)
+- **⚡ Bandwidth Limiting**: Control bandwidth usage per client or globally
+- **🔄 Multiple Protocols**: Support for WebSocket, HTTP/2, and gRPC
+
+**See [FEATURES.md](FEATURES.md) for detailed documentation on advanced features.**
 
 ## Architecture
 
@@ -238,23 +254,27 @@ Terminal 4 - Test the tunnel:
 curl http://localhost:8080/your-client-id/
 ```
 
-## Limitations
+## Implemented Features (v0.2.0)
 
-- **HTTP Only**: Currently only supports HTTP (not HTTPS)
-- **No Authentication**: No built-in authentication mechanism
-- **Single Server**: No load balancing or high availability
-- **Basic Protocol**: Simplified protocol compared to ngrok
+- [x] HTTPS/TLS support
+- [x] Custom subdomains
+- [x] Authentication and authorization
+- [x] Web dashboard for monitoring
+- [x] Traffic inspection and logging
+- [x] TCP tunnel support (not just HTTP)
+- [x] Bandwidth limiting
+- [x] Multiple protocol support (WebSocket, gRPC, etc.)
 
-## Future Enhancements
+## Planned Enhancements
 
-- [ ] HTTPS/TLS support
-- [ ] Custom subdomains
-- [ ] Authentication and authorization
-- [ ] Web dashboard for monitoring
-- [ ] Traffic inspection and logging
-- [ ] TCP tunnel support (not just HTTP)
-- [ ] Bandwidth limiting
-- [ ] Multiple protocol support (WebSocket, gRPC, etc.)
+- [ ] Load balancing across multiple servers
+- [ ] High availability with failover
+- [ ] Distributed tunnel server architecture
+- [ ] Built-in metrics and monitoring (Prometheus/Grafana)
+- [ ] Advanced routing rules
+- [ ] IP whitelisting/blacklisting
+- [ ] Custom middleware support
+- [ ] Plugin system for extensibility
 
 ## License
 
