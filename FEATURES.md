@@ -1,11 +1,12 @@
 ## PyTunnel Advanced Features
 
-Comprehensive guide to all advanced features in PyTunnel v0.2.0
+Comprehensive guide to all advanced features in PyTunnel v0.3.0
 
 ---
 
 ## Table of Contents
 
+### Core Features (v0.2.0)
 1. [HTTPS/TLS Support](#httpstls-support)
 2. [Custom Subdomains](#custom-subdomains)
 3. [Authentication & Authorization](#authentication--authorization)
@@ -15,6 +16,14 @@ Comprehensive guide to all advanced features in PyTunnel v0.2.0
 7. [Bandwidth Limiting](#bandwidth-limiting)
 8. [Multiple Protocol Support](#multiple-protocol-support)
 9. [Configuration Management](#configuration-management)
+
+### DX & Enterprise Features (v0.3.0)
+10. [Interactive Setup Wizard](#interactive-setup-wizard)
+11. [CLI UX Enhancements](#cli-ux-enhancements)
+12. [Shareable Tunnel Links](#shareable-tunnel-links)
+13. [Webhook Integrations](#webhook-integrations)
+14. [Advanced Security](#advanced-security)
+15. [Compliance & Audit Logging](#compliance--audit-logging)
 
 ---
 
@@ -729,6 +738,652 @@ auth.verify_password('username', 'password')
 limiter = get_bandwidth_limiter()
 stats = limiter.get_client_stats('client_id')
 print(stats)
+```
+
+---
+
+## Interactive Setup Wizard
+
+New in v0.3.0: Guided setup for both client and server configurations.
+
+### Features
+
+- **Port Scanning**: Automatically detects services running on common ports
+- **Project Detection**: Suggests subdomain from git repo or directory name
+- **Smart Defaults**: Pre-fills common configuration values
+- **Interactive Prompts**: User-friendly questionnaire-style setup
+- **Rich Terminal UI**: Beautiful tables and colored output (when available)
+- **Configuration Persistence**: Save settings for easy reuse
+
+### Usage
+
+#### Client Setup Wizard
+
+```python
+from pytunnel.common.wizard import run_wizard
+
+# Run interactive client setup
+config = await run_wizard(mode='client')
+```
+
+The wizard will:
+1. Scan for local services (port 3000, 5000, 8000, etc.)
+2. Show detected services in a table
+3. Ask which port to tunnel
+4. Detect project name from git or directory
+5. Offer custom subdomain option
+6. Request server URL and authentication
+7. Save configuration
+
+#### Server Setup Wizard
+
+```python
+# Run interactive server setup
+config = await run_wizard(mode='server')
+```
+
+The wizard guides you through:
+1. Host and port configuration
+2. Security preset selection (Basic/Standard/Paranoid)
+3. TLS/SSL setup
+4. Authentication options
+5. Feature toggles (dashboard, subdomains, etc.)
+6. Configuration save
+
+### CLI Integration
+
+```bash
+# Client wizard (future)
+pytunnel-client --wizard
+
+# Server wizard (future)
+pytunnel-server --wizard
+```
+
+### Features Detection
+
+The wizard automatically detects:
+- **React/Node.js** on port 3000
+- **Flask/Python** on port 5000
+- **Angular** on port 4200
+- **Vite** on port 5173
+- **Django** on port 8000
+- **Jupyter Notebook** on port 8888
+
+---
+
+## CLI UX Enhancements
+
+New in v0.3.0: Beautiful, informative command-line interface with real-time feedback.
+
+### Features
+
+- **Progress Bars**: Visual feedback for long-running operations
+- **Live Displays**: Real-time updating status information
+- **Rich Terminal UI**: Colored output, tables, and panels
+- **Graceful Fallbacks**: Works without rich library in plain terminals
+- **Status Command**: New `pytunnel-status` command
+
+### Progress Tracking
+
+```python
+from pytunnel.common.cli_display import ProgressTracker
+
+tracker = ProgressTracker()
+
+# Track task progress
+with tracker.track_task("Processing requests", total=100) as update:
+    for i in range(100):
+        # Do work
+        update(1)  # Increment by 1
+
+# Track downloads with bandwidth display
+with tracker.track_download("Downloading file", total=1000000) as update:
+    update(500000)  # Update progress
+```
+
+### Live Status Display
+
+```python
+from pytunnel.common.cli_display import LiveDisplay
+
+display = LiveDisplay()
+
+# Live updating display
+with display.live_display() as update:
+    update("Status: Connecting...")
+    # Do work
+    update("Status: Connected!")
+
+# Spinner for operations
+with display.spinner("Processing..."):
+    # Long operation
+    pass
+```
+
+### Status Command
+
+```bash
+# Show all status information
+pytunnel-status
+
+# Show only tunnels
+pytunnel-status --tunnels-only
+
+# Show only security info
+pytunnel-status --security-only
+
+# Show only compliance info
+pytunnel-status --compliance-only
+
+# JSON output
+pytunnel-status --json
+```
+
+### Status Display
+
+```python
+from pytunnel.common.cli_display import get_status_display
+
+display = get_status_display()
+
+# Show tunnel status
+display.show_tunnel_status(tunnels)
+
+# Show security status
+display.show_security_status(security_stats)
+
+# Show compliance status
+display.show_compliance_status(compliance_status)
+
+# Show complete summary
+display.show_summary(tunnels, security, compliance)
+```
+
+---
+
+## Shareable Tunnel Links
+
+New in v0.3.0: Create temporary shareable links for demos and testing.
+
+### Features
+
+- **Time-Limited Access**: Links expire after specified duration (max 7 days)
+- **Password Protection**: Optional password for access control
+- **IP Whitelist**: Restrict access to specific IP addresses
+- **Access Count Limits**: Limit number of times link can be used
+- **Brute-Force Protection**: 3 failed attempts = 15 minute lockout
+- **Beautiful Landing Page**: Professional share page with instructions
+
+### Usage
+
+```python
+from pytunnel.common.shares import get_share_manager
+
+manager = get_share_manager()
+
+# Create a share link
+share = manager.create_share(
+    tunnel_id="abc123",
+    expires_in_seconds=3600,  # 1 hour
+    password="demo123",
+    ip_whitelist={"192.168.1.0/24"},
+    max_access_count=10
+)
+
+print(f"Share URL: /share/{share.share_id}")
+print(f"Password: {share.password}")
+print(f"Expires: {share.expires_at}")
+```
+
+### Access Share
+
+```bash
+# Access via browser
+http://tunnel.example.com:8080/share/xyz789
+
+# Enter password if required
+# Link redirects to actual tunnel
+```
+
+### Share Management
+
+```python
+# Get share details
+share = manager.get_share("xyz789")
+
+# Verify access
+allowed, reason = manager.verify_share_access(
+    share_id="xyz789",
+    password="demo123",
+    ip_address="192.168.1.100"
+)
+
+# List all shares
+shares = manager.list_shares(tunnel_id="abc123")
+
+# Delete share
+manager.delete_share("xyz789")
+
+# Cleanup expired
+removed = manager.cleanup_expired()
+```
+
+### Share Properties
+
+```python
+@dataclass
+class Share:
+    share_id: str           # Unique share ID
+    tunnel_id: str          # Associated tunnel
+    created_at: float       # Creation timestamp
+    expires_at: float       # Expiration timestamp
+    password: Optional[str] # Password hash (if protected)
+    ip_whitelist: Set[str]  # Allowed IP addresses/ranges
+    max_access_count: int   # Max number of accesses
+    access_count: int       # Current access count
+```
+
+### Security Features
+
+- **Maximum 7-day expiration**: Prevents long-lived shares
+- **Password hashing**: Passwords stored with SHA-256
+- **Rate limiting**: 3 failed attempts triggers 15-minute lockout
+- **IP validation**: CIDR support for network ranges
+- **Access tracking**: Monitor who accessed and when
+
+---
+
+## Webhook Integrations
+
+New in v0.3.0: Get notified about tunnel events via webhooks.
+
+### Features
+
+- **Multi-Platform Support**: Slack, Discord, PagerDuty, custom webhooks
+- **Event Filtering**: Choose which events to send
+- **HMAC Signatures**: Verify webhook authenticity
+- **SSRF Protection**: Blocks localhost and private IPs
+- **Rate Limiting**: Prevents webhook spam
+- **Retry Logic**: Automatic retries with exponential backoff
+
+### Supported Platforms
+
+- **Slack**: Native Slack message formatting
+- **Discord**: Rich Discord embeds
+- **PagerDuty**: Incident creation
+- **Custom**: Generic webhook with JSON payload
+
+### Usage
+
+```python
+from pytunnel.common.webhooks import get_webhook_manager, WebhookType
+
+manager = get_webhook_manager()
+
+# Add Slack webhook
+manager.add_webhook(
+    url="https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+    webhook_type=WebhookType.SLACK,
+    events=["tunnel.created", "tunnel.deleted", "security.alert"],
+    secret="your-secret-key"  # For HMAC signatures
+)
+
+# Add Discord webhook
+manager.add_webhook(
+    url="https://discord.com/api/webhooks/YOUR/WEBHOOK",
+    webhook_type=WebhookType.DISCORD,
+    events=["*.created", "*.deleted"]  # Wildcard patterns
+)
+
+# Trigger webhook
+await manager.trigger(
+    event="tunnel.created",
+    data={
+        "tunnel_id": "abc123",
+        "subdomain": "myapp",
+        "user": "john@example.com"
+    }
+)
+```
+
+### Event Types
+
+- `tunnel.created` - New tunnel created
+- `tunnel.deleted` - Tunnel closed
+- `tunnel.request` - Request received (high volume!)
+- `share.created` - Share link created
+- `share.accessed` - Share link accessed
+- `security.alert` - Security event detected
+- `auth.failed` - Authentication failure
+- `config.changed` - Configuration updated
+
+### Webhook Payload
+
+```json
+{
+  "event": "tunnel.created",
+  "timestamp": 1700000000.123,
+  "data": {
+    "tunnel_id": "abc123",
+    "subdomain": "myapp",
+    "user": "john@example.com",
+    "ip_address": "192.168.1.1"
+  }
+}
+```
+
+### HMAC Signature Verification
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
+```
+
+Signature sent in `X-Webhook-Signature` header.
+
+### Security Features
+
+- **URL Validation**: Blocks localhost (127.0.0.1), private IPs (10.x, 192.168.x)
+- **HTTPS Required**: For production webhooks
+- **Rate Limiting**: Max 10 webhooks per minute per endpoint
+- **Timeout**: 5 second timeout for webhook requests
+- **HMAC**: Sign payloads with shared secret
+
+---
+
+## Advanced Security
+
+New in v0.3.0: Enterprise-grade security features.
+
+### Features
+
+- **IP Filtering**: Whitelist/blacklist with CIDR support
+- **Connection Limits**: Per-IP and total limits
+- **Rate Limiting**: Requests per minute limits
+- **DDoS Protection**: Auto-blocking after violations
+- **Security Score**: 0-100 score based on configuration
+- **Connection Tracking**: Monitor active connections
+
+### Security Presets
+
+```python
+from pytunnel.common.security import SecurityConfig, SecurityPreset
+
+# Basic (permissive)
+config = SecurityConfig.from_preset(SecurityPreset.BASIC)
+
+# Standard (balanced)
+config = SecurityConfig.from_preset(SecurityPreset.STANDARD)
+
+# Paranoid (strict)
+config = SecurityConfig.from_preset(SecurityPreset.PARANOID)
+```
+
+### IP Filtering
+
+```python
+from pytunnel.common.security import SecurityConfig, SecurityManager
+
+# Whitelist mode
+config = SecurityConfig(
+    ip_whitelist={"192.168.1.0/24", "10.0.0.100"}
+)
+
+# Blacklist mode
+config = SecurityConfig(
+    ip_blacklist={"1.2.3.4", "5.6.7.0/24"}
+)
+
+manager = SecurityManager(config)
+
+# Check if IP allowed
+allowed, reason = manager.check_connection("192.168.1.50")
+```
+
+### Connection Limiting
+
+```python
+config = SecurityConfig(
+    max_connections_per_ip=5,      # Max 5 per IP
+    max_connections_total=100,     # Max 100 total
+    connection_rate_limit=10       # Max 10 new connections per minute
+)
+
+manager = SecurityManager(config)
+
+# Register connection
+manager.register_connection("192.168.1.1")
+
+# Unregister when done
+manager.unregister_connection("192.168.1.1")
+
+# Get connection stats
+stats = manager.get_stats()
+```
+
+### DDoS Protection
+
+```python
+config = SecurityConfig(
+    request_rate_limit=100,  # Max 100 requests per minute per IP
+    block_threshold=3        # Auto-block after 3 violations
+)
+
+manager = SecurityManager(config)
+
+# Check request rate
+allowed, reason = manager.check_request("192.168.1.1")
+
+# Get blocked IPs
+blocked = manager.get_blocked_ips()
+
+# Manually unblock
+manager.unblock_ip("192.168.1.1")
+```
+
+### Security Score
+
+```python
+manager = SecurityManager(config)
+
+# Get security score (0-100)
+score = manager.get_security_score()
+
+# Score factors:
+# - IP filtering enabled: +20
+# - Connection limits set: +20
+# - Rate limiting enabled: +20
+# - Signature required: +20
+# - Encryption enabled: +20
+```
+
+### Security Stats
+
+```python
+stats = manager.get_stats()
+
+# {
+#   'security_score': 85,
+#   'connections': {
+#     'total_connections': 10,
+#     'connections_by_ip': {'192.168.1.1': 2}
+#   },
+#   'blocked_ips': [
+#     {'ip': '1.2.3.4', 'blocked_at': 1700000000, 'reason': 'Rate limit'}
+#   ],
+#   'config': {
+#     'has_whitelist': True,
+#     'has_blacklist': False,
+#     'max_connections_per_ip': 5
+#   }
+# }
+```
+
+---
+
+## Compliance & Audit Logging
+
+New in v0.3.0: Enterprise compliance and GDPR-ready audit logging.
+
+### Features
+
+- **Tamper-Evident Logging**: Cryptographic hash chains
+- **Audit Trail**: Comprehensive event logging
+- **GDPR Tools**: Data export and deletion
+- **Data Retention**: Configurable retention policies
+- **Auto-Cleanup**: Automatic old data removal
+- **Integrity Verification**: Detect log tampering
+
+### Audit Logging
+
+```python
+from pytunnel.common.compliance import (
+    get_compliance_manager, AuditEventType
+)
+
+manager = get_compliance_manager()
+
+# Log an event
+entry = manager.audit_logger.log_event(
+    event_type=AuditEventType.TUNNEL_CREATED,
+    user_id="john@example.com",
+    ip_address="192.168.1.1",
+    details={"tunnel_id": "abc123", "subdomain": "myapp"}
+)
+
+# Get audit logs
+logs = manager.audit_logger.get_entries(
+    user_id="john@example.com",
+    event_type=AuditEventType.TUNNEL_CREATED.value,
+    limit=100
+)
+
+# Verify integrity
+is_valid, errors = manager.audit_logger.verify_integrity()
+
+# Export logs
+manager.audit_logger.export_to_json("audit_export.json")
+```
+
+### Event Types
+
+```python
+class AuditEventType(Enum):
+    USER_CREATED = "user.created"
+    USER_DELETED = "user.deleted"
+    USER_LOGIN = "user.login"
+    USER_LOGOUT = "user.logout"
+    TUNNEL_CREATED = "tunnel.created"
+    TUNNEL_DELETED = "tunnel.deleted"
+    SHARE_CREATED = "share.created"
+    SHARE_ACCESSED = "share.accessed"
+    DATA_EXPORTED = "data.exported"
+    DATA_DELETED = "data.deleted"
+    CONFIG_CHANGED = "config.changed"
+    SECURITY_ALERT = "security.alert"
+```
+
+### Data Retention
+
+```python
+from pytunnel.common.compliance import RetentionPolicy
+
+policy = RetentionPolicy(
+    log_retention_days=90,      # Keep logs for 90 days
+    share_retention_days=30,    # Keep shares for 30 days
+    traffic_retention_days=7,   # Keep traffic logs for 7 days
+    auto_cleanup_enabled=True   # Auto-cleanup old data
+)
+
+manager = get_compliance_manager(retention_policy=policy)
+
+# Manual cleanup
+stats = manager.retention_manager.cleanup_old_data(
+    audit_logger=manager.audit_logger,
+    share_manager=shares,
+    traffic_inspector=traffic
+)
+
+# {'audit_logs_removed': 50, 'shares_removed': 10, 'traffic_logs_removed': 1000}
+```
+
+### GDPR Compliance
+
+```python
+# Export user data (Right to Access)
+data = manager.gdpr_manager.export_user_data(
+    user_id="john@example.com",
+    include_logs=True,
+    include_tunnels=True,
+    include_shares=True
+)
+
+# {
+#   'user_id': 'john@example.com',
+#   'export_timestamp': 1700000000.0,
+#   'data': {
+#     'audit_logs': [...],
+#     'tunnels': [...],
+#     'shares': [...]
+#   }
+# }
+
+# Delete user data (Right to Erasure)
+stats = manager.gdpr_manager.delete_user_data(
+    user_id="john@example.com",
+    delete_logs=False,  # Keep audit trail for compliance
+    delete_tunnels=True,
+    delete_shares=True
+)
+
+# {'tunnels_deleted': 5, 'shares_deleted': 2}
+```
+
+### Compliance Status
+
+```python
+status = manager.get_compliance_status()
+
+# {
+#   'audit_log_integrity': True,
+#   'audit_log_errors': [],
+#   'total_audit_entries': 1234,
+#   'retention_policy': {
+#     'log_retention_days': 90,
+#     'auto_cleanup_enabled': True
+#   },
+#   'last_cleanup': 1700000000.0,
+#   'gdpr_ready': True
+# }
+```
+
+### Tamper Detection
+
+The audit log uses a cryptographic hash chain:
+
+```python
+# Each entry contains:
+# - previous_hash: Hash of previous entry
+# - entry_hash: Hash of current entry + previous_hash
+
+# This creates an immutable chain
+# Any tampering breaks the chain and is detected
+
+entry1 = log_event(...)  # previous_hash = None
+entry2 = log_event(...)  # previous_hash = entry1.entry_hash
+entry3 = log_event(...)  # previous_hash = entry2.entry_hash
+
+# If entry2 is modified, entry3.previous_hash won't match
+# verify_integrity() will detect this
 ```
 
 ---

@@ -21,7 +21,7 @@ A lightweight ngrok-like tunneling application written in Python. PyTunnel allow
 - **Colored Logging**: Beautiful console output with color-coded logs
 - **Simple CLI**: Easy-to-use command-line interface
 
-### Advanced Features (NEW! ✨)
+### Advanced Features (v0.2.0)
 
 - **🔒 HTTPS/TLS Support**: Secure tunnels with SSL/TLS encryption
 - **🏷️ Custom Subdomains**: Use memorable subdomains instead of random IDs
@@ -31,6 +31,16 @@ A lightweight ngrok-like tunneling application written in Python. PyTunnel allow
 - **🌐 TCP Tunnel Support**: Tunnel raw TCP connections (databases, SSH, etc.)
 - **⚡ Bandwidth Limiting**: Control bandwidth usage per client or globally
 - **🔄 Multiple Protocols**: Support for WebSocket, HTTP/2, and gRPC
+
+### DX & Enterprise Features (v0.3.0) ✨
+
+- **🧙 Interactive Setup Wizard**: Guided setup with port scanning and smart defaults
+- **🎨 Enhanced CLI UX**: Progress bars, live displays, and beautiful terminal UI
+- **🔗 Shareable Links**: Time-limited, password-protected share links for demos
+- **🪝 Webhook Integrations**: Slack, Discord, PagerDuty notifications
+- **🛡️ Advanced Security**: IP filtering, DDoS protection, security scoring
+- **📋 Compliance & Audit**: GDPR-ready audit logging with tamper detection
+- **📊 Status Command**: New `pytunnel-status` for monitoring
 
 **See [FEATURES.md](FEATURES.md) for detailed documentation on advanced features.**
 
@@ -254,8 +264,9 @@ Terminal 4 - Test the tunnel:
 curl http://localhost:8080/your-client-id/
 ```
 
-## Implemented Features (v0.2.0)
+## Implemented Features
 
+### v0.2.0 - Core Advanced Features
 - [x] HTTPS/TLS support
 - [x] Custom subdomains
 - [x] Authentication and authorization
@@ -265,6 +276,16 @@ curl http://localhost:8080/your-client-id/
 - [x] Bandwidth limiting
 - [x] Multiple protocol support (WebSocket, gRPC, etc.)
 
+### v0.3.0 - DX & Enterprise Features
+- [x] Interactive setup wizard with port scanning
+- [x] Enhanced CLI UX with progress bars and live displays
+- [x] Shareable tunnel links with password protection
+- [x] Webhook integrations (Slack, Discord, PagerDuty)
+- [x] Advanced security (IP filtering, DDoS protection)
+- [x] Compliance features (GDPR, audit logging)
+- [x] pytunnel-status command
+- [x] Comprehensive test coverage
+
 ## Planned Enhancements
 
 - [ ] Load balancing across multiple servers
@@ -272,7 +293,6 @@ curl http://localhost:8080/your-client-id/
 - [ ] Distributed tunnel server architecture
 - [ ] Built-in metrics and monitoring (Prometheus/Grafana)
 - [ ] Advanced routing rules
-- [ ] IP whitelisting/blacklisting
 - [ ] Custom middleware support
 - [ ] Plugin system for extensibility
 

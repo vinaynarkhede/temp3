@@ -40,6 +40,7 @@ setup(
         "console_scripts": [
             "pytunnel-server=pytunnel.server.cli:main",
             "pytunnel-client=pytunnel.client.cli:main",
+            "pytunnel-status=pytunnel.cli_status:main",
         ],
     },
 )
